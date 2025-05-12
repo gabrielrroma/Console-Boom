@@ -1,8 +1,9 @@
-//
-// Created by gabri on 12/05/2025.
-//
-
 #ifndef JOGO_H
 #define JOGO_H
 
-#endif //JOGO_H
+void menuPrincipal(void);
+void iniciarJogo(void);
+// protótipo de encerrarJogo
+void encerrarJogo(void);
+
+#endif // JOGO_H
