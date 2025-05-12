@@ -1,44 +1,65 @@
 // src/jogo.c
 #include <stdio.h>
 #include <stdlib.h>
-#include <conio.h>      // _kbhit() e _getch() no Windows
-#include <windows.h>    // Sleep()
+#include <conio.h>      // _kbhit() e _getch()
+#include <windows.h>    // Sleep(), SetConsoleCursorPosition()
+#include <time.h>       // time()
 #include "jogo.h"
 #include "fila_bombas.h"
 #include "arvore_pontuacoes.h"
 #include "gpt_api.h"
 
-#define WIDTH  20
-#define HEIGHT 15
+#define WIDTH   20
+#define HEIGHT  15
 
 static int playerX, playerY;
 
-// Desenha bordas, jogador e todas as bombas
-void desenharTela(void) {
+// Desenha a barreira fixa (borda) e limpa o interior
+static void desenharBordas(void) {
     system("cls");
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
-            if (x==0 || x==WIDTH-1 || y==0 || y==HEIGHT-1) {
+            if (x==0 || x==WIDTH-1 || y==0 || y==HEIGHT-1)
                 putchar('#');
-            } else if (x==playerX && y==playerY) {
-                putchar('P');
-            } else {
-                int desenhou = 0;
-                for (Bomba *b = getFilaHead(); b; b = b->prox) {
-                    if (b->x==x && b->y==y) {
-                        putchar('B');
-                        desenhou = 1;
-                        break;
-                    }
-                }
-                if (!desenhou) putchar(' ');
-            }
+            else
+                putchar(' ');
         }
         putchar('\n');
     }
 }
 
-// Menu principal
+// Atualiza apenas o interior (player e bombas) sem tocar na borda
+static void desenharInterior(void) {
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD coord;
+    for (int y = 1; y < HEIGHT-1; y++) {
+        for (int x = 1; x < WIDTH-1; x++) {
+            coord.X = x;
+            coord.Y = y;
+            SetConsoleCursorPosition(h, coord);
+
+            // player
+            if (x == playerX && y == playerY) {
+                putchar('P');
+                continue;
+            }
+            // bomba?
+            int mostrou = 0;
+            for (Bomba *b = getFilaHead(); b; b = b->prox) {
+                if (b->x == x && b->y == y) {
+                    putchar('B');
+                    mostrou = 1;
+                    break;
+                }
+            }
+            if (mostrou) continue;
+            // espaço vazio
+            putchar(' ');
+        }
+    }
+}
+
+// Exibe o menu principal
 void menuPrincipal(void) {
     int opcao;
     do {
@@ -49,7 +70,7 @@ void menuPrincipal(void) {
         printf("Escolha uma opcao: ");
         scanf("%d", &opcao);
         switch (opcao) {
-            case 1: iniciarJogo(); break;
+            case 1: iniciarJogo();  break;
             case 2: exibirRanking(); break;
             case 3: printf("Saindo...\n"); break;
             default: printf("Opcao invalida!\n");
@@ -62,48 +83,68 @@ void iniciarJogo(void) {
     playerX = WIDTH/2;
     playerY = HEIGHT-2;
     int pontos = 0;
+
+    srand((unsigned)time(NULL));
     limparFila();
 
+    // desenha borda fixa
+    desenharBordas();
+
     while (1) {
-        // Gera bomba aleatória
-        if (rand()%5 == 0)
-            inserirBomba(rand()%(WIDTH-2)+1, 1);
-        // Move bombas
+        // gera bombas mais frequentemente
+        if (rand() % 5 == 0) {
+            inserirBomba(rand() % (WIDTH-2) + 1, 1);
+        }
+
         atualizarBombas();
-        // Remove as que saíram do campo
-        while (getFilaHead() && getFilaHead()->y >= HEIGHT-1)
+        while (getFilaHead() && getFilaHead()->y >= HEIGHT-1) {
             removerBomba();
-        // Colisão?
-        if (verificarColisao(playerX, playerY))
+        }
+
+        if (verificarColisao(playerX, playerY)) {
             break;
-        // Leitura não-bloqueante
+        }
+
+        // movimento WASD
         if (_kbhit()) {
             char c = _getch();
-            if (c=='w' && playerY>1) playerY--;
-            if (c=='s' && playerY<HEIGHT-2) playerY++;
-            if (c=='a' && playerX>1) playerX--;
-            if (c=='d' && playerX<WIDTH-2) playerX++;
+            if (c=='w' && playerY>1)           playerY--;
+            else if (c=='s' && playerY<HEIGHT-2) playerY++;
+            else if (c=='a' && playerX>1)        playerX--;
+            else if (c=='d' && playerX<WIDTH-2)  playerX++;
         }
-        // Desenha e mostra pontos
-        desenharTela();
-        printf("Pontos: %d\n", pontos);
-        Sleep(100);
+
+        // redesenha interior e atualiza pontuação
+        desenharInterior();
+        // posição do texto de pontos
+        COORD scorePos = {0, HEIGHT};
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), scorePos);
+        printf("Pontos: %d   ", pontos);
+
+        // delay dinâmico
+        int delay = 100 - (pontos / 10);
+        if (delay < 30) delay = 30;
+        Sleep(delay);
+
         pontos++;
     }
 
-    // Fim de jogo
+    // fim de jogo
+    COORD endPos = {0, HEIGHT+1};
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), endPos);
     printf("Game Over! Pontos: %d\n", pontos);
+
     char nome[50];
     printf("Digite seu nome: ");
     scanf("%49s", nome);
     inserirPontuacao(nome, pontos);
     salvarRankingEmArquivo("ranking.txt");
+
     encerrarJogo();
 }
 
-// Limpa recursos e volta ao menu
+// Limpa recursos e retorna ao menu
 void encerrarJogo(void) {
     limparFila();
-    // Se precisar liberar a árvore de pontuações, faça aqui
-    // Depois disso, retornamos ao menu (quando iniciarJogo retorna)
+    // (a árvore de pontuações permanece para exibir no menu)
 }
