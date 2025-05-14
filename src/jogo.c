@@ -43,13 +43,13 @@ static void desenharInterior(void) {
                 continue;
             }
             if (x == playerX && y == playerY) {
-                putchar('P');
+                putchar('O');
                 continue;
             }
             int found = 0;
             for (Bomba *b = getFilaHead(); b; b = b->prox) {
                 if (b->x == x && b->y == y) {
-                    putchar('B');
+                    putchar('*');
                     found = 1;
                     break;
                 }
