@@ -18,7 +18,7 @@ Console Boom é um jogo retrô em C jogado no terminal, onde o jogador deve desv
 Você precisa do **CMake** e de uma versão do GCC com suporte a C99.
 
 ### 📦 Dependência:
-- `libcurl` (para integração com a API do GPT)
+- `libcurl` (para integração com a API do Gemini)
 
 ### ✅ Compilação via terminal:
 
