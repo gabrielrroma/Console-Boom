@@ -1,6 +1,6 @@
 # 🎮 Console Boom
 
-Console Boom é um jogo retrô em C jogado no terminal, onde o jogador deve desviar de bombas caindo usando as teclas WASD. Cada bomba evitada aumenta a pontuação, e a dificuldade cresce com o tempo. Além disso, uma inteligência artificial integrada (via OpenAI API) interage com o jogador e influencia a dinâmica do jogo em tempo real.
+Console Boom é um jogo retrô em C jogado no terminal, onde o jogador deve desviar de bombas caindo usando as teclas WASD. Cada bomba evitada aumenta a pontuação, e a dificuldade cresce com o tempo. Além disso, uma inteligência artificial integrada (via Gemini API) interage com o jogador e influencia a dinâmica do jogo em tempo real.
 
 ---
 
@@ -8,7 +8,7 @@ Console Boom é um jogo retrô em C jogado no terminal, onde o jogador deve desv
 
 - Lógica principal baseada em **estruturas de dados** (Fila e Árvore Binária)
 - **Ordenação com QuickSort** para ranking de pontuação
-- **API de IA (GPT da OpenAI)** para gerar mensagens e eventos dinâmicos
+- **API de IA (Gemini)** para gerar mensagens e eventos dinâmicos
 - Totalmente em **C (C99)**, rodando via terminal
 
 ---
